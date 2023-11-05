@@ -65,6 +65,19 @@ public class NettyMessage {
                 .build();
     }
 
+    public static NettyMessage buildResponse(NettyServiceEnum nettyServiceEnum) {
+        return NettyMessage.builder()
+                .header(NETTY_RES)
+                .version(VERSION_V1)
+                .traceId(RandomUtil.randomString(16))
+                .service(nettyServiceEnum.code())
+                .encryptedRequest(true)
+                .encryptedResponse(true)
+                .contentLength(nettyServiceEnum.symbol().getBytes(StandardCharsets.UTF_8).length)
+                .data(nettyServiceEnum.symbol().getBytes(StandardCharsets.UTF_8))
+                .build();
+    }
+
     public ByteBuf toByteBuf() {
         ByteBuf byteBuf = Unpooled.buffer();
         byteBuf.writeCharSequence(this.header, StandardCharsets.UTF_8);

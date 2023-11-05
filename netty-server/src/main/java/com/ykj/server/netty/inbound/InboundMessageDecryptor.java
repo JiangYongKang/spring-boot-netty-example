@@ -26,13 +26,11 @@ public class InboundMessageDecryptor extends SimpleChannelInboundHandler<NettyMe
             message.setData(decryptBytes);
         }
         context.fireChannelRead(message);
-        log.info("Receive Message: {}", message);
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        super.exceptionCaught(ctx, cause);
-        ctx.close();
-        log.error("Inbound Process Fail", cause);
+    public void exceptionCaught(ChannelHandlerContext context, Throwable throwable) throws Exception {
+        context.close();
+        super.exceptionCaught(context, throwable);
     }
 }

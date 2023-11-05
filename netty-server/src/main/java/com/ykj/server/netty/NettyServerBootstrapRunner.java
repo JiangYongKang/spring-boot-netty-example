@@ -1,10 +1,11 @@
 package com.ykj.server.netty;
 
 import com.ykj.server.entity.NettyMessage;
-import com.ykj.server.entity.ProcessorCategory;
+import com.ykj.server.entity.NettyServiceEnum;
 import com.ykj.server.netty.inbound.InboundMessageDecoder;
 import com.ykj.server.netty.inbound.InboundMessageDecryptor;
 import com.ykj.server.netty.inbound.InboundMessageDispatcher;
+import com.ykj.server.netty.inbound.InboundMessageWhitelist;
 import com.ykj.server.netty.outbound.OutboundMessageEncoder;
 import com.ykj.server.netty.outbound.OutboundMessageEncryptor;
 import com.ykj.server.service.InboundMessageService;
@@ -14,6 +15,8 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +26,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,6 +39,8 @@ public class NettyServerBootstrapRunner {
     private Integer nettyPort;
     @Value("${netty.secret.key}")
     private String nettySecretKey;
+    @Value("${netty.whitelist}")
+    private String nettyWhitelist;
 
     @Resource
     private HeartBeatMessageService heartBeatMessageService;
@@ -83,7 +90,9 @@ public class NettyServerBootstrapRunner {
             @Override
             protected void initChannel(SocketChannel socketChannel) throws Exception {
                 socketChannel.pipeline()
+                        .addLast(new LoggingHandler(LogLevel.INFO))
                         .addLast(new InboundMessageDecoder(Integer.MAX_VALUE, NettyMessage.LENGTH_FIELD_OFFSET, NettyMessage.LENGTH_FIELD_LENGTH))
+                        .addLast(new InboundMessageWhitelist(new HashSet<>(Arrays.asList(nettyWhitelist.split(",")))))
                         .addLast(new InboundMessageDecryptor(nettySecretKey))
                         .addLast(dispatchInboundHandler())
                         .addLast(new OutboundMessageEncryptor(nettySecretKey))
@@ -94,7 +103,7 @@ public class NettyServerBootstrapRunner {
 
     private InboundMessageDispatcher dispatchInboundHandler() {
         Map<Long, InboundMessageService> inboundMessageServiceMap = new ConcurrentHashMap<>();
-        inboundMessageServiceMap.put(ProcessorCategory.HEART_BEAT.code(), heartBeatMessageService);
+        inboundMessageServiceMap.put(NettyServiceEnum.HEART_BEAT.code(), heartBeatMessageService);
         return new InboundMessageDispatcher(inboundMessageServiceMap);
     }
 

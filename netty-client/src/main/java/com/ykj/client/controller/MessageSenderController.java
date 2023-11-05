@@ -1,8 +1,8 @@
 package com.ykj.client.controller;
 
-import com.ykj.client.netty.ChannelHandlerContextManage;
+import com.ykj.client.netty.NettyClientBootstrapRunner;
 import com.ykj.server.entity.NettyMessage;
-import com.ykj.server.entity.ProcessorCategory;
+import com.ykj.server.entity.NettyServiceEnum;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,12 +17,12 @@ import java.nio.charset.StandardCharsets;
 public class MessageSenderController {
 
     @Resource
-    private ChannelHandlerContextManage channelHandlerContextManage;
+    private NettyClientBootstrapRunner nettyClientBootstrapRunner;
 
     @GetMapping
     public ResponseEntity<?> test(@RequestParam("data") String data) {
-        NettyMessage message = NettyMessage.buildRequest(ProcessorCategory.HEART_BEAT.code(), data.getBytes(StandardCharsets.UTF_8));
-        channelHandlerContextManage.writeAndFlush(message);
+        NettyMessage message = NettyMessage.buildRequest(NettyServiceEnum.HEART_BEAT.code(), data.getBytes(StandardCharsets.UTF_8));
+        nettyClientBootstrapRunner.writeAndFlush(message);
         return ResponseEntity.ok().build();
     }
 

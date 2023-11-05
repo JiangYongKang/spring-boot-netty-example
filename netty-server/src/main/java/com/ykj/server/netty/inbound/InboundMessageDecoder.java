@@ -21,15 +21,12 @@ public class InboundMessageDecoder extends LengthFieldBasedFrameDecoder {
         if (Objects.isNull(frame)) {
             return null;
         }
-        NettyMessage message = NettyMessage.buildFormByte(frame);
-        log.info("Receive Message: {}", message);
-        return message;
+        return NettyMessage.buildFormByte(frame);
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        super.exceptionCaught(ctx, cause);
-        ctx.close();
-        log.error("Inbound Process Fail", cause);
+    public void exceptionCaught(ChannelHandlerContext context, Throwable throwable) throws Exception {
+        context.close();
+        super.exceptionCaught(context, throwable);
     }
 }

@@ -38,8 +38,7 @@ public class InboundMessageDispatcher extends SimpleChannelInboundHandler<NettyM
 
     @Override
     public void exceptionCaught(ChannelHandlerContext context, Throwable throwable) throws Exception {
-        super.exceptionCaught(context, throwable);
         context.close();
-        log.error("Inbound Process Fail", throwable);
+        super.exceptionCaught(context, throwable);
     }
 }
